@@ -1,0 +1,6 @@
+﻿[*.cs]
+
+charset = utf-8
+
+# IDE0090: 'new(...)' 사용
+dotnet_diagnostic.IDE0090.severity = none
