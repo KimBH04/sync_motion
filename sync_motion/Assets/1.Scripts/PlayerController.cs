@@ -11,15 +11,17 @@ public class PlayerController : MonoBehaviour, IPunObservable
     [SerializeField] float rotationSpeed;
     [SerializeField] float damping;
 
-    private Animator modelAni;
     private Transform modelTr;
+
+    private Animator modelAni;
+    private readonly int hashWalk = Animator.StringToHash("WalkValue");
+    private readonly int hashDance = Animator.StringToHash("Dance");
+    private bool isDance = false;
 
     private float targetHor;
     private float targetVer;
     private float hor;
     private float ver;
-
-    private readonly int hashWalk = Animator.StringToHash("WalkValue");
 
     private Transform camTr;
 
@@ -92,6 +94,21 @@ public class PlayerController : MonoBehaviour, IPunObservable
         Vector2 v = value.Get<Vector2>();
         targetHor = v.x;
         targetVer = v.y;
+
+        if (isDance && (targetHor != 0f || targetVer != 0f))
+        {
+            isDance = false;
+            modelAni.SetBool(hashDance, false);
+        }
+    }
+
+    private void OnDance()
+    {
+        if (targetHor == 0f && targetVer == 0f)
+        {
+            isDance = !isDance;
+            modelAni.SetBool(hashDance, isDance);
+        }
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)

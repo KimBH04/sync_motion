@@ -212,7 +212,7 @@ Animator:
   m_Controller: {fileID: 9100000, guid: ad820e5c50f6e124b8398e19840485fb, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
-  m_ApplyRootMotion: 0
+  m_ApplyRootMotion: 1
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_WarningMessage: 
@@ -238,6 +238,9 @@ MonoBehaviour:
   - Type: 1
     SynchronizeType: 1
     Name: WalkValue
+  - Type: 4
+    SynchronizeType: 1
+    Name: Dance
   m_SynchronizeLayers:
   - SynchronizeType: 1
     LayerIndex: 0
