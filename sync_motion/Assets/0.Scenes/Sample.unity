@@ -891,10 +891,6 @@ PrefabInstance:
       propertyPath: sceneViewId
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 6668080391861662299, guid: 772afe35277402b4395e0c2d94904207, type: 3}
-      propertyPath: m_ApplyRootMotion
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 6668080393376927123, guid: 772afe35277402b4395e0c2d94904207, type: 3}
       propertyPath: m_Name
       value: Player

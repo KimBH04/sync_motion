@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6668080393376927125}
   - component: {fileID: -4864238383596720042}
+  - component: {fileID: 6441804660649324300}
   - component: {fileID: 4294980866661803069}
   - component: {fileID: 6668080393376927124}
   - component: {fileID: -2458377927469061607}
@@ -51,6 +52,19 @@ CapsuleCollider:
   m_Height: 1.6
   m_Direction: 1
   m_Center: {x: 0, y: 0.8, z: 0}
+--- !u!135 &6441804660649324300
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6668080393376927123}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 0
+  serializedVersion: 2
+  m_Radius: 1.5
+  m_Center: {x: 0, y: 0.8, z: 0}
 --- !u!54 &4294980866661803069
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -81,7 +95,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 1.4
   rotationSpeed: 10
-  damping: 10
+  damp: 10
+  syncDamp: 0
 --- !u!114 &-2458377927469061607
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -212,7 +227,7 @@ Animator:
   m_Controller: {fileID: 9100000, guid: ad820e5c50f6e124b8398e19840485fb, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
-  m_ApplyRootMotion: 1
+  m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_WarningMessage: 
