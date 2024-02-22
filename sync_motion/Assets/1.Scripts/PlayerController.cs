@@ -12,7 +12,6 @@ public class PlayerController : MonoBehaviour, IPunObservable
     [SerializeField] private float speed;
     [SerializeField] private float rotationSpeed;
     [SerializeField] private float damp;
-    [SerializeField, Range(0f, 1f)] private float syncDamp;
 
     private Transform modelTr;
 
@@ -38,6 +37,9 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private PhotonView pv;
     private Vector3 receivePos;
     private Quaternion receiveRot;
+    private float receiveWalk;
+    private float receiveOffset;
+    private bool receiveIsDance;
 
     private Quaternion lastRot;     //Model's rotation
 
@@ -48,11 +50,6 @@ public class PlayerController : MonoBehaviour, IPunObservable
         pv = GetComponent<PhotonView>();
 
         modelAni = GetComponentInChildren<Animator>();
-
-        if (modelAni.GetBool(hashDance))
-        {
-            pv.RPC(nameof(ColliderEnable), RpcTarget.All, true);
-        }
 
         if (pv.IsMine)
         {
@@ -76,11 +73,11 @@ public class PlayerController : MonoBehaviour, IPunObservable
             transform.rotation = Quaternion.Euler(0f, camTr.eulerAngles.y, 0f);
             modelTr.rotation = lastRot;
 
-            hor = Mathf.Lerp(hor, targetHor, damp * Time.deltaTime);
-            ver = Mathf.Lerp(ver, targetVer, damp * Time.deltaTime);
-
-            if (Mathf.Abs(hor) > 0.0001f || Mathf.Abs(ver) > 0.0001f)
+            if (targetHor != 0 || targetVer != 0 || Mathf.Abs(hor) > 0.0001f || Mathf.Abs(ver) > 0.0001f)
             {
+                hor = Mathf.Lerp(hor, targetHor, damp * Time.deltaTime);
+                ver = Mathf.Lerp(ver, targetVer, damp * Time.deltaTime);
+
                 float normal = Mathf.Sqrt(Mathf.Abs(hor) + Mathf.Abs(ver));
                 Vector3 translate = new Vector3(hor / normal, 0f, ver / normal);
 
@@ -104,6 +101,14 @@ public class PlayerController : MonoBehaviour, IPunObservable
             transform.SetPositionAndRotation(
                 Vector3.Lerp(transform.position, receivePos, damp * Time.deltaTime),
                 Quaternion.Lerp(transform.rotation, receiveRot, damp * Time.deltaTime));
+
+            modelAni.SetFloat(hashWalk, receiveWalk);
+            modelAni.SetFloat(hashOffset, receiveOffset);
+
+            isDance = receiveIsDance;
+            modelAni.SetBool(hashDance, isDance);
+            pv.RPC(nameof(ColliderEnable), RpcTarget.All, isDance);
+            modelAni.SetBool(hashDance, isDance);
         }
     }
 
@@ -178,7 +183,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         if (!isDance && triggeredObjects.Count > 0)
         {
             Animator syncAni = triggeredObjects.First().GetComponentInChildren<Animator>();
-            float offset = (syncAni.GetCurrentAnimatorStateInfo(0).normalizedTime + syncDamp) % 1f;
+            float offset = (syncAni.GetCurrentAnimatorStateInfo(0).normalizedTime + syncAni.GetFloat(hashOffset)) % 1f;
             modelAni.SetFloat(hashOffset, offset);
 
             isDance = true;
@@ -191,6 +196,10 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private void ColliderEnable(bool enable)
     {
         triggerCollider.enabled = enable;
+        if (!enable)
+        {
+            OnDisableEvent?.Invoke(gameObject);
+        }
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
@@ -199,11 +208,19 @@ public class PlayerController : MonoBehaviour, IPunObservable
         {
             receivePos = (Vector3)stream.ReceiveNext();
             receiveRot = (Quaternion)stream.ReceiveNext();
+
+            receiveWalk = (float)stream.ReceiveNext();
+            receiveOffset = (float)stream.ReceiveNext();
+            receiveIsDance = (bool)stream.ReceiveNext();
         }
         else if (stream.IsWriting)
         {
             stream.SendNext(modelTr.position);
             stream.SendNext(modelTr.rotation);
+
+            stream.SendNext(modelAni.GetFloat(hashWalk));
+            stream.SendNext(modelAni.GetFloat(hashOffset));
+            stream.SendNext(modelAni.GetBool(hashDance));
         }
     }
 }
