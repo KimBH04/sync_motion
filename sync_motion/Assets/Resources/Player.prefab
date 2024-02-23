@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6668080393376927125}
   - component: {fileID: -4864238383596720042}
-  - component: {fileID: 6441804660649324300}
+  - component: {fileID: 1696577368929224305}
   - component: {fileID: 4294980866661803069}
   - component: {fileID: 6668080393376927124}
   - component: {fileID: -2458377927469061607}
@@ -52,7 +52,7 @@ CapsuleCollider:
   m_Height: 1.6
   m_Direction: 1
   m_Center: {x: 0, y: 0.8, z: 0}
---- !u!135 &6441804660649324300
+--- !u!135 &1696577368929224305
 SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -146,7 +146,6 @@ MonoBehaviour:
   observableSearch: 2
   ObservedComponents:
   - {fileID: 6668080393376927124}
-  - {fileID: 0}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0

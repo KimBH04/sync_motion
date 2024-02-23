@@ -1,5 +1,3 @@
-#pragma warning disable IDE0051
-
 using Cinemachine;
 using Photon.Pun;
 using System.Collections.Generic;
@@ -13,9 +11,17 @@ public class PlayerController : MonoBehaviour, IPunObservable
     [SerializeField] private float rotationSpeed;
     [SerializeField] private float damp;
 
+    private float targetHor;
+    private float targetVer;
+    private float hor;
+    private float ver;
+
     private Transform modelTr;
+    private Quaternion lastRot;     //Model's rotation
 
     private Animator modelAni;
+    private float walk = 0f;
+    private float offset = 0f;
     private bool isDance = false;
     private readonly int hashWalk = Animator.StringToHash("WalkValue");
     private readonly int hashOffset = Animator.StringToHash("OffsetValue");
@@ -27,13 +33,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private readonly HashSet<GameObject> triggeredObjects = new HashSet<GameObject>();
     private event System.Action<GameObject> OnDisableEvent;
 
-    private float targetHor;
-    private float targetVer;
-    private float hor;
-    private float ver;
-
-    private Transform camTr;
-
+    //data relay
     private PhotonView pv;
     private Vector3 receivePos;
     private Quaternion receiveRot;
@@ -41,7 +41,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private float receiveOffset;
     private bool receiveIsDance;
 
-    private Quaternion lastRot;     //Model's rotation
+    private Transform camTr;
 
     private void Start()
     {
@@ -91,7 +91,8 @@ public class PlayerController : MonoBehaviour, IPunObservable
 
                 transform.Translate(speed * Time.deltaTime * translate);
 
-                modelAni.SetFloat(hashWalk, Mathf.Max(Mathf.Abs(hor), Mathf.Abs(ver)));
+                walk = Mathf.Max(Mathf.Abs(hor), Mathf.Abs(ver));
+                modelAni.SetFloat(hashWalk, walk);
             }
 
             lastRot = modelTr.rotation;
@@ -106,7 +107,6 @@ public class PlayerController : MonoBehaviour, IPunObservable
             modelAni.SetFloat(hashOffset, receiveOffset);
 
             isDance = receiveIsDance;
-            modelAni.SetBool(hashDance, isDance);
             pv.RPC(nameof(ColliderEnable), RpcTarget.All, isDance);
             modelAni.SetBool(hashDance, isDance);
         }
@@ -170,6 +170,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     {
         if (targetHor == 0f && targetVer == 0f)
         {
+            offset = 0f;
             modelAni.SetFloat(hashOffset, 0f);
 
             isDance = !isDance;
@@ -183,7 +184,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
         if (!isDance && triggeredObjects.Count > 0)
         {
             Animator syncAni = triggeredObjects.First().GetComponentInChildren<Animator>();
-            float offset = (syncAni.GetCurrentAnimatorStateInfo(0).normalizedTime + syncAni.GetFloat(hashOffset)) % 1f;
+            offset = (syncAni.GetCurrentAnimatorStateInfo(0).normalizedTime + syncAni.GetFloat(hashOffset)) % 1f;
             modelAni.SetFloat(hashOffset, offset);
 
             isDance = true;
@@ -218,9 +219,9 @@ public class PlayerController : MonoBehaviour, IPunObservable
             stream.SendNext(modelTr.position);
             stream.SendNext(modelTr.rotation);
 
-            stream.SendNext(modelAni.GetFloat(hashWalk));
-            stream.SendNext(modelAni.GetFloat(hashOffset));
-            stream.SendNext(modelAni.GetBool(hashDance));
+            stream.SendNext(walk);
+            stream.SendNext(offset);
+            stream.SendNext(isDance);
         }
     }
 }
