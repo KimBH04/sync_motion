@@ -96,6 +96,8 @@ MonoBehaviour:
   speed: 1.4
   rotationSpeed: 10
   damp: 10
+  animationClips:
+  - {fileID: -203655887218126122, guid: 34e0290d89eab844895d82689e9bbfc5, type: 3}
 --- !u!114 &-2458377927469061607
 MonoBehaviour:
   m_ObjectHideFlags: 0

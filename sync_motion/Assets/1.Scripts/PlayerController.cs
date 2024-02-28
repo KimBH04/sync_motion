@@ -1,9 +1,10 @@
-using Cinemachine;
-using Photon.Pun;
-using System.Collections.Generic;
+using System;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Cinemachine;
+using Photon.Pun;
 
 public class PlayerController : MonoBehaviour, IPunObservable
 {
@@ -19,10 +20,15 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private Transform modelTr;
     private Quaternion lastRot;     //Model's rotation
 
+
+    [SerializeField] private AnimationClip[] animationClips;
+    private int animationIndex = 0;
+
     private Animator modelAni;
     private float walk = 0f;
     private float offset = 0f;
     private bool isDance = false;
+
     private readonly int hashWalk = Animator.StringToHash("WalkValue");
     private readonly int hashOffset = Animator.StringToHash("OffsetValue");
     private readonly int hashDance = Animator.StringToHash("Dance");
@@ -31,15 +37,19 @@ public class PlayerController : MonoBehaviour, IPunObservable
 
     //트리거 된 오브젝트가 Disable 되거나 Destroy 될 때 처리할 해시 셋과 이벤트
     private readonly HashSet<GameObject> triggeredObjects = new HashSet<GameObject>();
-    private event System.Action<GameObject> OnDisableEvent;
+    private event Action<GameObject> OnDisableEvent;
+
 
     //data relay
     private PhotonView pv;
+
     private Vector3 receivePos;
     private Quaternion receiveRot;
+
     private float receiveWalk;
     private float receiveOffset;
     private bool receiveIsDance;
+
 
     private Transform camTr;
 
@@ -73,7 +83,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
             transform.rotation = Quaternion.Euler(0f, camTr.eulerAngles.y, 0f);
             modelTr.rotation = lastRot;
 
-            if (targetHor != 0 || targetVer != 0 || Mathf.Abs(hor) > 0.0001f || Mathf.Abs(ver) > 0.0001f)
+            if (targetHor != 0f || targetVer != 0f || Mathf.Abs(hor) > 0.0001f || Mathf.Abs(ver) > 0.0001f)
             {
                 hor = Mathf.Lerp(hor, targetHor, damp * Time.deltaTime);
                 ver = Mathf.Lerp(ver, targetVer, damp * Time.deltaTime);
@@ -103,8 +113,11 @@ public class PlayerController : MonoBehaviour, IPunObservable
                 Vector3.Lerp(transform.position, receivePos, damp * Time.deltaTime),
                 Quaternion.Lerp(transform.rotation, receiveRot, damp * Time.deltaTime));
 
-            modelAni.SetFloat(hashWalk, receiveWalk);
-            modelAni.SetFloat(hashOffset, receiveOffset);
+            if (!isDance)
+            {
+                modelAni.SetFloat(hashWalk, receiveWalk);
+                modelAni.SetFloat(hashOffset, receiveOffset);
+            }
 
             isDance = receiveIsDance;
             pv.RPC(nameof(ColliderEnable), RpcTarget.All, isDance);
@@ -183,6 +196,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     {
         if (!isDance && triggeredObjects.Count > 0)
         {
+            //트리거 된 다른 플레이어의 애니메이션 가져오기
             Animator syncAni = triggeredObjects.First().GetComponentInChildren<Animator>();
             offset = (syncAni.GetCurrentAnimatorStateInfo(0).normalizedTime + syncAni.GetFloat(hashOffset)) % 1f;
             modelAni.SetFloat(hashOffset, offset);
@@ -205,16 +219,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
-        if (stream.IsReading)
-        {
-            receivePos = (Vector3)stream.ReceiveNext();
-            receiveRot = (Quaternion)stream.ReceiveNext();
-
-            receiveWalk = (float)stream.ReceiveNext();
-            receiveOffset = (float)stream.ReceiveNext();
-            receiveIsDance = (bool)stream.ReceiveNext();
-        }
-        else if (stream.IsWriting)
+        if (stream.IsWriting)
         {
             stream.SendNext(modelTr.position);
             stream.SendNext(modelTr.rotation);
@@ -222,6 +227,19 @@ public class PlayerController : MonoBehaviour, IPunObservable
             stream.SendNext(walk);
             stream.SendNext(offset);
             stream.SendNext(isDance);
+        }
+        else
+        {
+            receivePos = (Vector3)stream.ReceiveNext();
+            receiveRot = (Quaternion)stream.ReceiveNext();
+
+            receiveWalk = (float)stream.ReceiveNext();
+            receiveOffset = (float)stream.ReceiveNext();
+            receiveIsDance = (bool)stream.ReceiveNext();
+
+            //송수신 시간 차이 좁히기
+            receiveOffset += (PhotonNetwork.ServerTimestamp - info.SentServerTimestamp) / 999f / animationClips[animationIndex].length;
+            receiveOffset %= 1f;
         }
     }
 }

@@ -1,6 +1,6 @@
-using Photon.Pun;
 using System.Collections;
 using UnityEngine;
+using Photon.Pun;
 
 public class PhotonManager : MonoBehaviourPunCallbacks
 {
@@ -29,19 +29,16 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
-        Debug.Log("Connected To Master");
         PhotonNetwork.JoinLobby();
     }
 
     public override void OnJoinedLobby()
     {
-        Debug.Log("Joined Lobby");
         PhotonNetwork.JoinRandomOrCreateRoom();
     }
 
     public override void OnJoinedRoom()
     {
-        Debug.Log("Joined Room");
         PhotonNetwork.LoadLevel(1);
     }
 
