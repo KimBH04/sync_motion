@@ -22,7 +22,6 @@ public class PlayerController : MonoBehaviour, IPunObservable
 
 
     [SerializeField] private AnimationClip[] animationClips;
-    private int animationIndex = 0;
 
     private Animator modelAni;
     private float walk = 0f;
@@ -32,6 +31,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     private readonly int hashWalk = Animator.StringToHash("WalkValue");
     private readonly int hashOffset = Animator.StringToHash("OffsetValue");
     private readonly int hashDance = Animator.StringToHash("Dance");
+    private readonly int hashDanceIndex = Animator.StringToHash("DanceIndex");
 
     private SphereCollider triggerCollider;
 
@@ -48,7 +48,12 @@ public class PlayerController : MonoBehaviour, IPunObservable
 
     private float receiveWalk;
     private float receiveOffset;
+    private int danceIdx;
     private bool receiveIsDance;
+
+
+    //rpc send message
+    private readonly string COLLIDER = nameof(ColliderEnable);
 
 
     private Transform camTr;
@@ -117,10 +122,11 @@ public class PlayerController : MonoBehaviour, IPunObservable
             {
                 modelAni.SetFloat(hashWalk, receiveWalk);
                 modelAni.SetFloat(hashOffset, receiveOffset);
+                modelAni.SetFloat(hashDanceIndex, danceIdx);
             }
 
             isDance = receiveIsDance;
-            pv.RPC(nameof(ColliderEnable), RpcTarget.All, isDance);
+            pv.RPC(COLLIDER, RpcTarget.All, isDance);
             modelAni.SetBool(hashDance, isDance);
         }
     }
@@ -174,20 +180,33 @@ public class PlayerController : MonoBehaviour, IPunObservable
         if (isDance && (targetHor != 0f || targetVer != 0f))
         {
             isDance = false;
-            pv.RPC(nameof(ColliderEnable), RpcTarget.All, false);
+            pv.RPC(COLLIDER, RpcTarget.All, false);
             modelAni.SetBool(hashDance, false);
         }
     }
 
-    private void OnDance()
+    private void OnDance(InputValue value)
     {
         if (targetHor == 0f && targetVer == 0f)
         {
-            offset = 0f;
-            modelAni.SetFloat(hashOffset, 0f);
+            float index = value.Get<float>();
+            if (index == -1f)
+            {
+                isDance = true;
+            }
+            else
+            {
+                offset = 0f;
+                modelAni.SetFloat(hashOffset, 0f);
+
+                danceIdx = (int)index;
+                modelAni.SetFloat(hashDanceIndex, index);
+
+                isDance = false;
+            }
 
             isDance = !isDance;
-            pv.RPC(nameof(ColliderEnable), RpcTarget.All, isDance);
+            pv.RPC(COLLIDER, RpcTarget.All, isDance);
             modelAni.SetBool(hashDance, isDance);
         }
     }
@@ -196,13 +215,19 @@ public class PlayerController : MonoBehaviour, IPunObservable
     {
         if (!isDance && triggeredObjects.Count > 0)
         {
-            //트리거 된 다른 플레이어의 애니메이션 가져오기
-            Animator syncAni = triggeredObjects.First().GetComponentInChildren<Animator>();
+            //트리거 된 다른 플레이어의 애니메이션과 애니메이션 번호 가져오기
+            GameObject anotherPlayer = triggeredObjects.First();
+            
+            Animator syncAni = anotherPlayer.GetComponentInChildren<Animator>();
             offset = (syncAni.GetCurrentAnimatorStateInfo(0).normalizedTime + syncAni.GetFloat(hashOffset)) % 1f;
             modelAni.SetFloat(hashOffset, offset);
 
+            PlayerController syncCon = anotherPlayer.GetComponent<PlayerController>();
+            danceIdx = syncCon.danceIdx;
+            modelAni.SetFloat(hashDanceIndex, danceIdx);
+
             isDance = true;
-            pv.RPC(nameof(ColliderEnable), RpcTarget.All, true);
+            pv.RPC(COLLIDER, RpcTarget.All, true);
             modelAni.SetBool(hashDance, true);
         }
     }
@@ -226,6 +251,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
 
             stream.SendNext(walk);
             stream.SendNext(offset);
+            stream.SendNext(danceIdx);
             stream.SendNext(isDance);
         }
         else
@@ -235,10 +261,11 @@ public class PlayerController : MonoBehaviour, IPunObservable
 
             receiveWalk = (float)stream.ReceiveNext();
             receiveOffset = (float)stream.ReceiveNext();
+            danceIdx = (int)stream.ReceiveNext();
             receiveIsDance = (bool)stream.ReceiveNext();
 
             //송수신 시간 차이 좁히기
-            receiveOffset += (PhotonNetwork.ServerTimestamp - info.SentServerTimestamp) / 999f / animationClips[animationIndex].length;
+            receiveOffset += (PhotonNetwork.ServerTimestamp - info.SentServerTimestamp) / 990f / animationClips[danceIdx].length;
             receiveOffset %= 1f;
         }
     }

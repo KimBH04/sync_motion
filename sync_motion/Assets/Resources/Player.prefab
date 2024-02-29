@@ -98,6 +98,8 @@ MonoBehaviour:
   damp: 10
   animationClips:
   - {fileID: -203655887218126122, guid: 34e0290d89eab844895d82689e9bbfc5, type: 3}
+  - {fileID: -203655887218126122, guid: 79e7498bd14f581479e06358b71e3bad, type: 3}
+  - {fileID: -203655887218126122, guid: ad863b1e2b18682469c61f42c1871b1b, type: 3}
 --- !u!114 &-2458377927469061607
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -122,7 +124,19 @@ MonoBehaviour:
   m_ControlsChangedEvent:
     m_PersistentCalls:
       m_Calls: []
-  m_ActionEvents: []
+  m_ActionEvents:
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 8d35b94e-b56e-4407-9b22-75440555fd25
+    m_ActionName: Control/Move[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d,/Keyboard/upArrow,/Keyboard/downArrow,/Keyboard/leftArrow,/Keyboard/rightArrow]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 46a87ce5-3494-49ac-a433-afa36d122e06
+    m_ActionName: Control/Dance[/Keyboard/space]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 5904ed2a-5224-43d1-b92c-a5e575184f6b
+    m_ActionName: Control/Sync[/Keyboard/f]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: PC
   m_DefaultActionMap: Control

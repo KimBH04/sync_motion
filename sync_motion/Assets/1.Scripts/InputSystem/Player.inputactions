@@ -146,10 +146,21 @@
                 },
                 {
                     "name": "",
-                    "id": "1bb69cc7-8c4d-4307-940c-dd92ddd13def",
-                    "path": "<Keyboard>/space",
+                    "id": "d8b55935-78ea-4f24-90ff-deef79058e8c",
+                    "path": "<Keyboard>/f",
                     "interactions": "",
                     "processors": "",
+                    "groups": "",
+                    "action": "Sync",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a831d944-ed3a-49f1-8743-2d7b0d3a44a4",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "Scale(factor=-1)",
                     "groups": "",
                     "action": "Dance",
                     "isComposite": false,
@@ -157,12 +168,34 @@
                 },
                 {
                     "name": "",
-                    "id": "d8b55935-78ea-4f24-90ff-deef79058e8c",
-                    "path": "<Keyboard>/f",
+                    "id": "2b7b4c86-3fff-4efe-8f70-4bf7c2e730ae",
+                    "path": "<Keyboard>/1",
                     "interactions": "",
-                    "processors": "",
+                    "processors": "Scale(factor=0)",
                     "groups": "",
-                    "action": "Sync",
+                    "action": "Dance",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6356d109-f05a-4b78-89dd-c151018605d9",
+                    "path": "<Keyboard>/2",
+                    "interactions": "",
+                    "processors": "Scale",
+                    "groups": "",
+                    "action": "Dance",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1eebf117-ff2d-4502-ac47-fd64c649067c",
+                    "path": "<Keyboard>/3",
+                    "interactions": "",
+                    "processors": "Scale(factor=2)",
+                    "groups": "",
+                    "action": "Dance",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
