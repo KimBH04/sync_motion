@@ -32,7 +32,7 @@ BlendTree:
     m_CycleOffset: 0
     m_DirectBlendParameter: DanceIndex
     m_Mirror: 0
-  m_BlendParameter: DanceIndex
+  m_BlendParameter: AnimationNumber
   m_BlendParameterY: WalkValue
   m_MinThreshold: 0
   m_MaxThreshold: 2
@@ -65,7 +65,7 @@ AnimatorState:
   m_SpeedParameter: 
   m_MirrorParameter: 
   m_CycleOffsetParameter: OffsetValue
-  m_TimeParameter: WalkValue
+  m_TimeParameter: Reset
 --- !u!206 &-5252240895256100008
 BlendTree:
   m_ObjectHideFlags: 1
@@ -129,19 +129,19 @@ AnimatorController:
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 0}
-  - m_Name: OffsetValue
-    m_Type: 1
-    m_DefaultFloat: 0
-    m_DefaultInt: 0
-    m_DefaultBool: 0
-    m_Controller: {fileID: 0}
   - m_Name: Dance
     m_Type: 4
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 0}
-  - m_Name: DanceIndex
+  - m_Name: AnimationNumber
+    m_Type: 1
+    m_DefaultFloat: 0
+    m_DefaultInt: 0
+    m_DefaultBool: 0
+    m_Controller: {fileID: 0}
+  - m_Name: OffsetValue
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
@@ -198,7 +198,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Blend Tree
+  m_Name: Idle - Walk
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
