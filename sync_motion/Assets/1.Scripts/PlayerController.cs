@@ -108,7 +108,7 @@ public class PlayerController : MonoBehaviour, IPunObservable
     {
         if (targetHor == 0f && targetVer == 0f)
         {
-            animationController.PlayDance(value.Get<float>());
+            animationController.PlayDance((int)value.Get<float>());
         }
     }
 

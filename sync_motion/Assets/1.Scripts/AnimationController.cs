@@ -6,11 +6,13 @@ using Photon.Pun;
 
 public class AnimationController : MonoBehaviour, IPunObservable
 {
+    [SerializeField] private AnimationClip[] clips;
     private Animator animator;
+    private float[] clipsLengths;
 
     private readonly int hashWalk = Animator.StringToHash("WalkValue");
     private readonly int hashIsDance = Animator.StringToHash("Dance");
-    private readonly int hashAnimationNumber = Animator.StringToHash("AnimationNumber");
+    private readonly int hashMotionNumber = Animator.StringToHash("MotionNumber");
     private readonly int hashOffset = Animator.StringToHash("OffsetValue");
 
     private SphereCollider triggerCollider;
@@ -24,7 +26,7 @@ public class AnimationController : MonoBehaviour, IPunObservable
 
     private float walk;
     private bool m_isDance;
-    private float animationNumber;
+    private int MotionNumber;
 
     private long motionStartTicks;
 
@@ -51,6 +53,8 @@ public class AnimationController : MonoBehaviour, IPunObservable
         animator = GetComponentInChildren<Animator>();
         triggerCollider = GetComponent<SphereCollider>();
         pv = GetComponent<PhotonView>();
+
+        clipsLengths = clips.Select(x => x.length).ToArray();
     }
 
     private void Update()
@@ -58,7 +62,6 @@ public class AnimationController : MonoBehaviour, IPunObservable
         if (!pv.IsMine)
         {
             animator.SetFloat(hashWalk, walk);
-            animator.SetFloat(hashAnimationNumber, animationNumber);
         }
     }
 
@@ -108,14 +111,13 @@ public class AnimationController : MonoBehaviour, IPunObservable
         animator.SetFloat(hashWalk, walk);
     }
 
-    public void PlayDance(float number)
+    public void PlayDance(int number)
     {
         PhotonNetwork.RemoveBufferedRPCs(methodName: DANCE);
 
         long ticks = DateTime.Now.Ticks;
         pv.RPC(DANCE, RpcTarget.AllBuffered,
             number,
-            animator.GetCurrentAnimatorStateInfo(0).length,
             ticks);
     }
 
@@ -127,14 +129,13 @@ public class AnimationController : MonoBehaviour, IPunObservable
 
             AnimationController anotherCon = triggeredObjects.First().GetComponent<AnimationController>();
             pv.RPC(DANCE, RpcTarget.AllBuffered,
-                anotherCon.animationNumber,
-                anotherCon.animator.GetCurrentAnimatorStateInfo(0).length,
+                anotherCon.MotionNumber,
                 anotherCon.motionStartTicks);
         }
     }
 
     [PunRPC]
-    private void Dance(float number, float len, long ticks)
+    private void Dance(int number, long ticks)
     {
         if (number == -1f)
         {
@@ -142,13 +143,13 @@ public class AnimationController : MonoBehaviour, IPunObservable
         }
         else
         {
-            animationNumber = number;
-            animator.SetFloat(hashAnimationNumber, number);
+            MotionNumber = number;
+            animator.SetInteger(hashMotionNumber, number);
 
             motionStartTicks = ticks;
             float diff = DateTime.Now.Ticks - motionStartTicks;
             float diffSeconds = diff / TimeSpan.TicksPerSecond;
-            animator.SetFloat(hashOffset, diffSeconds / len % 1f);
+            animator.SetFloat(hashOffset, diffSeconds / clipsLengths[number] % 1f);
 
             IsDance = true;
         }

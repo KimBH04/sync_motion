@@ -109,6 +109,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8905b95bf43b41a42955fbe98822145e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  clips:
+  - {fileID: -203655887218126122, guid: 34e0290d89eab844895d82689e9bbfc5, type: 3}
+  - {fileID: -203655887218126122, guid: 79e7498bd14f581479e06358b71e3bad, type: 3}
+  - {fileID: -203655887218126122, guid: ad863b1e2b18682469c61f42c1871b1b, type: 3}
 --- !u!114 &-2458377927469061607
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -172,7 +176,6 @@ MonoBehaviour:
   ObservedComponents:
   - {fileID: 6668080393376927124}
   - {fileID: -2874299662707942218}
-  - {fileID: 0}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
