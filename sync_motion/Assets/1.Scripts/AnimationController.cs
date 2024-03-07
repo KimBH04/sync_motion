@@ -30,9 +30,15 @@ public class AnimationController : MonoBehaviour, IPunObservable
 
     private long motionStartTicks;
 
-    private const string SET = nameof(SetDoDance);
+    private const string SET = nameof(Set);
     private const string DANCE = nameof(Dance);
 
+    /// <summary>
+    /// Set <see cref="m_isDance">m_isDance</see> and call <see cref="Set">setting method</see> uisng <see cref="PhotonView.RPC">RPC</see>
+    /// </summary>
+    /// <returns>
+    /// <see cref="m_isDance">m_isDance</see>
+    /// </returns>
     public bool IsDance
     {
         get
@@ -116,9 +122,7 @@ public class AnimationController : MonoBehaviour, IPunObservable
         PhotonNetwork.RemoveBufferedRPCs(methodName: DANCE);
 
         long ticks = DateTime.Now.Ticks;
-        pv.RPC(DANCE, RpcTarget.AllBuffered,
-            number,
-            ticks);
+        pv.RPC(DANCE, RpcTarget.AllBuffered, number, ticks);
     }
 
     private void OnSync()
@@ -128,12 +132,15 @@ public class AnimationController : MonoBehaviour, IPunObservable
             PhotonNetwork.RemoveBufferedRPCs(methodName: DANCE);
 
             AnimationController anotherCon = triggeredObjects.First().GetComponent<AnimationController>();
-            pv.RPC(DANCE, RpcTarget.AllBuffered,
-                anotherCon.MotionNumber,
-                anotherCon.motionStartTicks);
+            pv.RPC(DANCE, RpcTarget.AllBuffered, anotherCon.MotionNumber, anotherCon.motionStartTicks);
         }
     }
 
+    /// <summary>
+    /// Play animation on all clients
+    /// </summary>
+    /// <param name="number">Animation number</param>
+    /// <param name="ticks">Ticks of animation playback start time</param>
     [PunRPC]
     private void Dance(int number, long ticks)
     {
@@ -156,24 +163,18 @@ public class AnimationController : MonoBehaviour, IPunObservable
     }
 
     [PunRPC]
-    private void SetDoDance(bool enable)
+    private void Set(bool enable)
     {
         animator.SetBool(hashIsDance, enable);
         triggerCollider.enabled = enable;
-        if (!enable)
-        {
-            OnDisableEvent?.Invoke(gameObject);
-        }
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
-        //send
         if (stream.IsWriting)   
         {
             stream.SendNext(walk);
         }
-        //receive
         else                    
         {
             walk = (float)stream.ReceiveNext();
