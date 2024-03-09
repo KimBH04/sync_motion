@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
+using Unity.VisualScripting;
 
 public class AnimationController : MonoBehaviour, IPunObservable
 {
@@ -17,8 +18,16 @@ public class AnimationController : MonoBehaviour, IPunObservable
 
     private SphereCollider triggerCollider;
 
-    //트리거 된 오브젝트가 Disable 되거나 Destroy 될 때 처리할 해시 셋과 이벤트
+    /// <summary>
+    /// Hash set to handle when triggered objects are disabled or destroyed.<br/>
+    /// 트리거 된 오브젝트가 숨겨지거나 파괴되었을 때 처리할 해시 셋
+    /// </summary>
     private readonly HashSet<GameObject> triggeredObjects = new HashSet<GameObject>();
+
+    /// <summary>
+    /// Event to handle when triggered objects are disabled or destroyed.<br/>
+    /// 트리거 된 오브젝트가 숨겨지거나 파괴되었을 때 처리할 이벤트
+    /// </summary>
     private event Action<GameObject> OnDisableEvent;
 
     //data relay
@@ -34,7 +43,8 @@ public class AnimationController : MonoBehaviour, IPunObservable
     private const string DANCE = nameof(Dance);
 
     /// <summary>
-    /// Set <see cref="m_isDance">m_isDance</see> and call <see cref="Set">setting method</see> uisng <see cref="PhotonView.RPC">RPC</see>
+    /// Set <see cref="m_isDance">m_isDance</see> and call <see cref="Set">setting method</see> uisng <see cref="PhotonView.RPC">RPC</see> at other clients.<br/>
+    /// <see cref="m_isDance">m_isDance</see>를 설정하고 <see cref="PhotonView.RPC">RPC</see>를 통해 다른 클라이언트에서 <see cref="Set">Set 함수</see> 실행하기
     /// </summary>
     /// <returns>
     /// <see cref="m_isDance">m_isDance</see>
@@ -137,10 +147,11 @@ public class AnimationController : MonoBehaviour, IPunObservable
     }
 
     /// <summary>
-    /// Play animation on all clients
+    /// Play animation on all clients.<br/>
+    /// 모든 클라이언트에서 애니메이션 실행
     /// </summary>
-    /// <param name="number">Animation number</param>
-    /// <param name="ticks">Ticks of animation playback start time</param>
+    /// <param name="number">Animation number.<br/>애니메이션 번호</param>
+    /// <param name="ticks">Ticks of animation playback start time.<br/>애니메이션 시작 시간의 틱</param>
     [PunRPC]
     private void Dance(int number, long ticks)
     {
