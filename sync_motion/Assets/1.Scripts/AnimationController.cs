@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
-using Unity.VisualScripting;
 
 public class AnimationController : MonoBehaviour, IPunObservable
 {
@@ -16,19 +15,30 @@ public class AnimationController : MonoBehaviour, IPunObservable
     private readonly int hashMotionNumber = Animator.StringToHash("MotionNumber");
     private readonly int hashOffset = Animator.StringToHash("OffsetValue");
 
+    /// <summary>
+    /// triggerCollider.enable => m_isDance
+    /// </summary>
     private SphereCollider triggerCollider;
 
     /// <summary>
     /// Hash set to handle when triggered objects are disabled or destroyed.<br/>
-    /// 트리거 된 오브젝트가 숨겨지거나 파괴되었을 때 처리할 해시 셋
+    /// object must have <see cref="AnimationController"/> component.<br/><br/>
+    /// 트리거 된 오브젝트가 숨겨지거나 파괴되었을 때 처리할 해시 셋.<br/>
+    /// 오브젝트에 <see cref="AnimationController"/> 컴포넌트가 반드시 있어야 함. 
     /// </summary>
     private readonly HashSet<GameObject> triggeredObjects = new HashSet<GameObject>();
 
     /// <summary>
     /// Event to handle when triggered objects are disabled or destroyed.<br/>
-    /// 트리거 된 오브젝트가 숨겨지거나 파괴되었을 때 처리할 이벤트
+    /// 트리거 된 오브젝트가 숨겨지거나 파괴되었을 때 처리할 이벤트.
     /// </summary>
     private event Action<GameObject> OnDisableEvent;
+
+    /// <summary>
+    /// Event to synchronized player also change motion when I change my motion.<br/>
+    /// 모션을 바꿀 때 동기화 된 플레이어도 같이 바뀌게 할 이벤트.
+    /// </summary>
+    private event Action<AnimationController> OnChangeMotion;
 
     //data relay
     private PhotonView pv;
@@ -44,7 +54,7 @@ public class AnimationController : MonoBehaviour, IPunObservable
 
     /// <summary>
     /// Set <see cref="m_isDance">m_isDance</see> and call <see cref="Set">setting method</see> uisng <see cref="PhotonView.RPC">RPC</see> at other clients.<br/>
-    /// <see cref="m_isDance">m_isDance</see>를 설정하고 <see cref="PhotonView.RPC">RPC</see>를 통해 다른 클라이언트에서 <see cref="Set">Set 함수</see> 실행하기
+    /// <see cref="m_isDance">m_isDance</see>를 설정하고 <see cref="PhotonView.RPC">RPC</see>를 통해 다른 클라이언트에서 <see cref="Set">Set 함수</see> 실행.
     /// </summary>
     /// <returns>
     /// <see cref="m_isDance">m_isDance</see>
@@ -99,10 +109,7 @@ public class AnimationController : MonoBehaviour, IPunObservable
     {
         if (other.CompareTag("Player"))
         {
-            if (triggeredObjects.Remove(other.gameObject))
-            {
-                other.GetComponent<AnimationController>().OnDisableEvent -= DisableEvent;
-            }
+            DisableEvent(other.gameObject);
         }
     }
 
@@ -118,7 +125,12 @@ public class AnimationController : MonoBehaviour, IPunObservable
 
     private void DisableEvent(GameObject @object)
     {
-        triggeredObjects.Remove(@object);
+        if (triggeredObjects.Remove(@object))
+        {
+            var aniCon = @object.GetComponent<AnimationController>();
+            aniCon.OnDisableEvent -= DisableEvent;
+            aniCon.OnChangeMotion -= Change;
+        }
     }
 
     public void Walk(float value)
@@ -139,29 +151,34 @@ public class AnimationController : MonoBehaviour, IPunObservable
     {
         if (!m_isDance && triggeredObjects.Count > 0)
         {
-            PhotonNetwork.RemoveBufferedRPCs(methodName: DANCE);
-
-            AnimationController anotherCon = triggeredObjects.First().GetComponent<AnimationController>();
-            pv.RPC(DANCE, RpcTarget.AllBuffered, anotherCon.MotionNumber, anotherCon.motionStartTicks);
+            var aniCon = triggeredObjects.First().GetComponent<AnimationController>();
+            aniCon.OnChangeMotion += Change;
+            Change(aniCon);
         }
+    }
+
+    private void Change(AnimationController aniCon)
+    {
+        PhotonNetwork.RemoveBufferedRPCs(methodName: DANCE);
+        pv.RPC(DANCE, RpcTarget.AllBuffered, aniCon.MotionNumber, aniCon.motionStartTicks);
     }
 
     /// <summary>
     /// Play animation on all clients.<br/>
-    /// 모든 클라이언트에서 애니메이션 실행
+    /// 모든 클라이언트에서 애니메이션 실행.
     /// </summary>
-    /// <param name="number">Animation number.<br/>애니메이션 번호</param>
-    /// <param name="ticks">Ticks of animation playback start time.<br/>애니메이션 시작 시간의 틱</param>
+    /// <param name="number">Animation number.<br/>애니메이션 번호.</param>
+    /// <param name="ticks">Ticks of animation playback start time.<br/>애니메이션 시작 시간의 틱.</param>
     [PunRPC]
     private void Dance(int number, long ticks)
     {
+        MotionNumber = number;
         if (number == -1f)
         {
             IsDance = false;
         }
         else
         {
-            MotionNumber = number;
             animator.SetInteger(hashMotionNumber, number);
 
             motionStartTicks = ticks;
@@ -170,6 +187,12 @@ public class AnimationController : MonoBehaviour, IPunObservable
             animator.SetFloat(hashOffset, diffSeconds / clipsLengths[number] % 1f);
 
             IsDance = true;
+        }
+
+        OnChangeMotion?.Invoke(this);
+        if (!m_isDance)
+        {
+            OnChangeMotion = null;
         }
     }
 
