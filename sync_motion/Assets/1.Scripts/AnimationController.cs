@@ -35,6 +35,12 @@ public class AnimationController : MonoBehaviour, IPunObservable
     private event Action<GameObject> OnDisableEvent;
 
     /// <summary>
+    /// Object to synchronize.<br/>
+    /// 동기화 할 오브젝트
+    /// </summary>
+    private AnimationController synchronizeTo;
+
+    /// <summary>
     /// Event to synchronized player also change motion when I change my motion.<br/>
     /// 모션을 바꿀 때 동기화 된 플레이어도 같이 바뀌게 할 이벤트.
     /// </summary>
@@ -53,12 +59,15 @@ public class AnimationController : MonoBehaviour, IPunObservable
     private const string DANCE = nameof(Dance);
 
     /// <summary>
-    /// Set <see cref="m_isDance">m_isDance</see> and call <see cref="Set">setting method</see> uisng <see cref="PhotonView.RPC">RPC</see> at other clients.<br/>
+    /// Set <see cref="m_isDance">m_isDance</see> and call <see cref="Set">setting method</see> throgh <see cref="PhotonView.RPC">RPC</see> at other clients.<br/>
     /// <see cref="m_isDance">m_isDance</see>를 설정하고 <see cref="PhotonView.RPC">RPC</see>를 통해 다른 클라이언트에서 <see cref="Set">Set 함수</see> 실행.
     /// </summary>
     /// <returns>
     /// <see cref="m_isDance">m_isDance</see>
     /// </returns>
+    /// 
+    //  Set m_isDance and call setting method throgh RPC at other clients.
+    //  m_isDance를 설정하고 RPC를 통해 다른 클라이언트에서 Set 함수 실행.
     public bool IsDance
     {
         get
@@ -95,12 +104,9 @@ public class AnimationController : MonoBehaviour, IPunObservable
     {
         if (other.CompareTag("Player"))
         {
-            if (!m_isDance)
+            if (triggeredObjects.Add(other.gameObject))
             {
-                if (triggeredObjects.Add(other.gameObject))
-                {
-                    other.GetComponent<AnimationController>().OnDisableEvent += DisableEvent;
-                }
+                other.GetComponent<AnimationController>().OnDisableEvent += DisableEvent;
             }
         }
     }
@@ -143,6 +149,12 @@ public class AnimationController : MonoBehaviour, IPunObservable
     {
         PhotonNetwork.RemoveBufferedRPCs(methodName: DANCE);
 
+        if (synchronizeTo != null)
+        {
+            synchronizeTo.OnChangeMotion -= Change;
+            synchronizeTo = null;
+        }
+
         long ticks = DateTime.Now.Ticks;
         pv.RPC(DANCE, RpcTarget.AllBuffered, number, ticks);
     }
@@ -151,9 +163,9 @@ public class AnimationController : MonoBehaviour, IPunObservable
     {
         if (!m_isDance && triggeredObjects.Count > 0)
         {
-            var aniCon = triggeredObjects.First().GetComponent<AnimationController>();
-            aniCon.OnChangeMotion += Change;
-            Change(aniCon);
+            synchronizeTo = triggeredObjects.First().GetComponent<AnimationController>();
+            synchronizeTo.OnChangeMotion += Change;
+            Change(synchronizeTo);
         }
     }
 
@@ -179,6 +191,8 @@ public class AnimationController : MonoBehaviour, IPunObservable
         }
         else
         {
+            synchronizeTo = synchronizeTo == null ? this : synchronizeTo;
+
             animator.SetInteger(hashMotionNumber, number);
 
             motionStartTicks = ticks;
